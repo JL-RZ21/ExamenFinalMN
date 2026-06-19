@@ -1,11 +1,22 @@
+import sys
+import os
+
+# Detecta automáticamente la carpeta del proyecto y la registra en Python
+ruta_proyecto = r"C:\Users\jorge\OneDrive\Documents\Jorge\mariano\metodosNumericos"
+if ruta_proyecto not in sys.path:
+    sys.path.insert(0, ruta_proyecto)
+
+# Ahora el import funcionará sin importar desde dónde lances el comando
+from metodos.gauss_seidel import gauss_seidel
+
 import streamlit as st
 import pandas as pd
 import numpy as np
 import sympy as sp
 import matplotlib.pyplot as plt
 from metodos.secante import secante
-from metodos.gaussSeidel import gauss_seidel
-from metodos.gaussJordan import gauss_jordan
+from metodos.gauss_seidel import gauss_seidel
+from metodos.gauss_jordan import gauss_jordan
 from utils.graficas import graficar_funcion, graficar_error
 import math
 
@@ -535,16 +546,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# FUNCIÓN MATRIZ A LATEX
-# ============================================================
-def _matriz_to_latex(matriz):
-    """Convierte una matriz a formato LaTeX"""
-    filas = []
-    for fila in matriz:
-        filas.append(" & ".join([f"{v:.6f}" for v in fila]))
-    return " \\\\ ".join(filas)
-
-# ============================================================
 # FUNCIONES PARA GENERAR PASO A PASO
 # ============================================================
 
@@ -684,21 +685,6 @@ def generar_pasos_gauss_jordan(aumentada):
     
     pasos = []
     
-    # Paso inicial: mostrar la matriz aumentada
-    paso_inicial = {
-        'tipo': 'inicial',
-        'iteracion': 0,
-        'detalle': f"""
-**Matriz aumentada inicial:**
-
-$$\\begin{{bmatrix}}
-{_matriz_to_latex(A)}
-\\end{{bmatrix}}$$
-""",
-        'matriz': A.copy()
-    }
-    pasos.append(paso_inicial)
-    
     for i in range(n):
         # Buscar pivote
         pivote = A[i, i]
@@ -716,16 +702,13 @@ $$\\begin{{bmatrix}}
                     'detalle': f"""
 **Paso {i+1}: Intercambio de filas**
 
-Como el pivote $a_{{{i+1}{i+1}}} = {pivote:.6f}$ es cero (o muy cercano a cero), 
-se intercambia la fila {i+1} con la fila {intercambio+1}.
+Como el pivote $a_{{{i+1}{i+1}}} = {pivote:.6f}$ es cero, se intercambia la fila {i+1} con la fila {intercambio+1}.
 
-**Matriz después del intercambio:**
-
+Matriz después del intercambio:
 $$\\begin{{bmatrix}}
-{_matriz_to_latex(A)}
+{self._matriz_to_latex(A)}
 \\end{{bmatrix}}$$
-""",
-                    'matriz': A.copy()
+"""
                 }
                 pasos.append(paso)
                 pivote = A[i, i]
@@ -744,19 +727,11 @@ Se divide la fila {i+1} por el pivote $a_{{{i+1}{i+1}}} = {pivote:.6f}$:
 
 $$F_{{{i+1}}} \\leftarrow \\frac{{F_{{{i+1}}}}}{{{pivote:.6f}}}$$
 
-**Matriz después de normalizar:**
-
+Matriz después de normalizar:
 $$\\begin{{bmatrix}}
-{_matriz_to_latex(A)}
+{self._matriz_to_latex(A)}
 \\end{{bmatrix}}$$
-
-**Fila {i+1} normalizada:**
-
-$$\\begin{{bmatrix}}
-{" & ".join([f"{v:.6f}" for v in A[i, :]])}
-\\end{{bmatrix}}$$
-""",
-            'matriz': A.copy()
+"""
         }
         pasos.append(paso)
         
@@ -778,55 +753,27 @@ Se elimina el elemento $a_{{{j+1}{i+1}}} = {factor:.6f}$ usando la fila pivote:
 
 $$F_{{{j+1}}} \\leftarrow F_{{{j+1}}} - ({factor:.6f}) \\cdot F_{{{i+1}}}$$
 
-**Cálculo detallado:**
-
-- Fila original {j+1}: $$\\begin{{bmatrix}}
-{" & ".join([f"{v:.6f}" for v in A_fila_original_j])}
-\\end{{bmatrix}}$$
-
-- Restando $${factor:.6f} \\cdot$$ Fila {i+1}: $$\\begin{{bmatrix}}
-{" & ".join([f"{factor * A[i, k]:.6f}" for k in range(n+1)])}
-\\end{{bmatrix}}$$
-
-- Resultado: $$\\begin{{bmatrix}}
-{" & ".join([f"{A[j, k]:.6f}" for k in range(n+1)])}
-\\end{{bmatrix}}$$
-
-**Matriz después de eliminar:**
-
+Matriz después de eliminar:
 $$\\begin{{bmatrix}}
-{_matriz_to_latex(A)}
+{self._matriz_to_latex(A)}
 \\end{{bmatrix}}$$
-""",
-                        'matriz': A.copy()
+"""
                     }
                     pasos.append(paso)
     
-    # Paso final
     solucion = A[:, -1]
-    paso_final = {
-        'tipo': 'final',
-        'iteracion': n+1,
-        'detalle': f"""
-**¡Solución encontrada!**
-
-**Matriz identidad resultante (forma escalonada reducida):**
-
-$$\\begin{{bmatrix}}
-{_matriz_to_latex(A)}
-\\end{{bmatrix}}$$
-
-**Vector solución:**
-
-$$x = \\begin{{bmatrix}}
-{" \\\\ ".join([f"{solucion[k]:.8f}" for k in range(n)])}
-\\end{{bmatrix}}$$
-""",
-        'matriz': A.copy()
-    }
-    pasos.append(paso_final)
-    
     return pasos, solucion
+
+def _matriz_to_latex(matriz):
+    """Convierte una matriz a formato LaTeX"""
+    filas = []
+    for fila in matriz:
+        filas.append(" & ".join([f"{v:.4f}" for v in fila]))
+    return " \\\\ ".join(filas)
+
+# Añadir método estático a la clase
+import types
+generar_pasos_gauss_jordan._matriz_to_latex = _matriz_to_latex
 
 # ============================================================
 # HEADER
@@ -885,64 +832,66 @@ with tab1:
     
     col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 6])
     with col_btn1:
-        if st.button("Calcular", use_container_width=True):
-            try:
-                with st.spinner("Procesando..."):
-                    pasos, raiz = generar_pasos_secante(func, x0, x1, tol, max_iter)
-                    iteraciones, _ = secante(func, x0, x1, tol, max_iter)
-                
+        calcular_secante = st.button("Calcular", use_container_width=True)
+    
+    if calcular_secante:
+        try:
+            with st.spinner("Procesando..."):
+                pasos, raiz = generar_pasos_secante(func, x0, x1, tol, max_iter)
+                iteraciones, _ = secante(func, x0, x1, tol, max_iter)
+            
+            st.markdown(f"""
+            <div class="result-box">
+                <span class="icon">✓</span>
+                <span class="label">Raíz aproximada:</span>
+                <span class="value"><code>{raiz:.10f}</code></span>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Mostrar paso a paso
+            st.markdown("""
+            <div style="font-weight: 600; margin: 1.5rem 0 0.8rem 0; color: #1a1a2e; font-size: 0.95rem;">
+                <i class="fas fa-list-ol" style="color: #1a2a4a; margin-right: 0.5rem;"></i>
+                Paso a Paso
+            </div>
+            """, unsafe_allow_html=True)
+            
+            for paso in pasos:
                 st.markdown(f"""
-                <div class="result-box">
-                    <span class="icon">✓</span>
-                    <span class="label">Raíz aproximada:</span>
-                    <span class="value"><code>{raiz:.10f}</code></span>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # Mostrar paso a paso
-                st.markdown("""
-                <div style="font-weight: 600; margin: 1.5rem 0 0.8rem 0; color: #1a1a2e; font-size: 0.95rem;">
-                    <i class="fas fa-list-ol" style="color: #1a2a4a; margin-right: 0.5rem;"></i>
-                    Paso a Paso
-                </div>
-                """, unsafe_allow_html=True)
-                
-                for paso in pasos:
-                    st.markdown(f"""
-                    <div class="step-container">
-                        <div class="step-number">Iteración {paso['iteracion']}</div>
-                        <div class="step-content">
-                            {paso['detalle']}
-                        </div>
+                <div class="step-container">
+                    <div class="step-number">Iteración {paso['iteracion']}</div>
+                    <div class="step-content">
+                        {paso['detalle']}
                     </div>
-                    """, unsafe_allow_html=True)
-                
-                # Tabla
-                df = pd.DataFrame(iteraciones)
-                df_display = df.copy()
-                for col in ['x_anterior', 'x_actual', 'f_anterior', 'f_actual', 'x_siguiente', 'error_aproximado']:
-                    df_display[col] = df_display[col].apply(lambda v: f"{v:.6e}")
-                
-                st.markdown("""
-                <div style="font-weight: 600; margin: 1.5rem 0 0.5rem 0; color: #1a1a2e; font-size: 0.9rem;">
-                    <i class="fas fa-table" style="color: #1a2a4a; margin-right: 0.5rem;"></i>
-                    Tabla de Iteraciones
                 </div>
                 """, unsafe_allow_html=True)
-                st.dataframe(df_display, use_container_width=True)
-                
-                # Gráfica
-                st.markdown("""
-                <div style="font-weight: 600; margin: 1.5rem 0 0.5rem 0; color: #1a1a2e; font-size: 0.9rem;">
-                    <i class="fas fa-chart-area" style="color: #1a2a4a; margin-right: 0.5rem;"></i>
-                    Gráfica de la Función
-                </div>
-                """, unsafe_allow_html=True)
-                fig = graficar_funcion(func, raiz, x0, x1)
-                st.pyplot(fig)
-                
-            except Exception as e:
-                st.error(f"Error: {e}")
+            
+            # Tabla
+            df = pd.DataFrame(iteraciones)
+            df_display = df.copy()
+            for col in ['x_anterior', 'x_actual', 'f_anterior', 'f_actual', 'x_siguiente', 'error_aproximado']:
+                df_display[col] = df_display[col].apply(lambda v: f"{v:.6e}")
+            
+            st.markdown("""
+            <div style="font-weight: 600; margin: 1.5rem 0 0.5rem 0; color: #1a1a2e; font-size: 0.9rem;">
+                <i class="fas fa-table" style="color: #1a2a4a; margin-right: 0.5rem;"></i>
+                Tabla de Iteraciones
+            </div>
+            """, unsafe_allow_html=True)
+            st.dataframe(df_display, use_container_width=True)
+            
+            # Gráfica
+            st.markdown("""
+            <div style="font-weight: 600; margin: 1.5rem 0 0.5rem 0; color: #1a1a2e; font-size: 0.9rem;">
+                <i class="fas fa-chart-area" style="color: #1a2a4a; margin-right: 0.5rem;"></i>
+                Gráfica de la Función
+            </div>
+            """, unsafe_allow_html=True)
+            fig = graficar_funcion(func, raiz, x0, x1)
+            st.pyplot(fig)
+            
+        except Exception as e:
+            st.error(f"Error: {e}")
     
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -1136,29 +1085,9 @@ with tab3:
         row = []
         for j in range(n_gj+1):
             if j < n_gj:
-                # Valores predeterminados para el ejemplo de la imagen
-                if n_gj == 3:
-                    if i == 0 and j == 0: val_default = 1.0
-                    elif i == 0 and j == 1: val_default = -1.0
-                    elif i == 0 and j == 2: val_default = 0.0
-                    elif i == 1 and j == 0: val_default = -1.0
-                    elif i == 1 and j == 1: val_default = 1.0
-                    elif i == 1 and j == 2: val_default = 1.0
-                    elif i == 2 and j == 0: val_default = 0.0
-                    elif i == 2 and j == 1: val_default = -1.0
-                    elif i == 2 and j == 2: val_default = 1.0
-                    else: val_default = 0.0
-                else:
-                    val_default = 1.0 if i == j else (0.0 if abs(i-j) > 1 else (1.0 if i < j else -1.0))
+                val_default = 1.0 if i == j else (0.0 if abs(i-j) > 1 else (1.0 if i < j else -1.0))
             else:
-                # Valores predeterminados para el ejemplo de la imagen
-                if n_gj == 3:
-                    if i == 0: val_default = 0.0
-                    elif i == 1: val_default = 3.0
-                    elif i == 2: val_default = 6.0
-                    else: val_default = 1.0
-                else:
-                    val_default = 1.0 if i == 0 else (3.0 if i == 1 else 6.0)
+                val_default = 1.0 if i == 0 else (3.0 if i == 1 else 6.0)
             with cols[j]:
                 val = st.number_input(
                     f"m{i+1}{j+1}",
@@ -1200,6 +1129,30 @@ with tab3:
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
+            
+            # Mostrar matrices finales
+            matrices_paso, _ = gauss_jordan(aumentada_input)
+            
+            st.markdown("""
+            <div style="font-weight: 600; margin: 1.5rem 0 0.5rem 0; color: #1a1a2e; font-size: 0.9rem;">
+                <i class="fas fa-table" style="color: #1a2a4a; margin-right: 0.5rem;"></i>
+                Matrices Intermedias
+            </div>
+            <p style="color: #8a8aaa; font-size: 0.8rem; margin-bottom: 0.8rem;">
+                <i class="fas fa-info-circle" style="color: #1a2a4a;"></i>
+                Se muestra la matriz después de cada operación elemental.
+            </p>
+            """, unsafe_allow_html=True)
+            
+            for idx, mat in enumerate(matrices_paso):
+                st.markdown(f"""
+                <div style="font-weight: 500; color: #1a1a2e; margin: 0.5rem 0 0.2rem 0; font-size: 0.85rem;">
+                    Paso {idx+1}
+                </div>
+                """, unsafe_allow_html=True)
+                df_mat = pd.DataFrame(mat)
+                df_mat = df_mat.map(lambda v: f"{v:.6e}")
+                st.dataframe(df_mat, use_container_width=True)
             
         except Exception as e:
             st.error(f"Error: {e}")
