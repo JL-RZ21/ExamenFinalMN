@@ -706,7 +706,7 @@ Como el pivote $a_{{{i+1}{i+1}}} = {pivote:.6f}$ es cero, se intercambia la fila
 
 Matriz después del intercambio:
 $$\\begin{{bmatrix}}
-{self._matriz_to_latex(A)}
+{_matriz_to_latex(A)}
 \\end{{bmatrix}}$$
 """
                 }
@@ -729,7 +729,7 @@ $$F_{{{i+1}}} \\leftarrow \\frac{{F_{{{i+1}}}}}{{{pivote:.6f}}}$$
 
 Matriz después de normalizar:
 $$\\begin{{bmatrix}}
-{self._matriz_to_latex(A)}
+{_matriz_to_latex(A)}
 \\end{{bmatrix}}$$
 """
         }
@@ -755,7 +755,7 @@ $$F_{{{j+1}}} \\leftarrow F_{{{j+1}}} - ({factor:.6f}) \\cdot F_{{{i+1}}}$$
 
 Matriz después de eliminar:
 $$\\begin{{bmatrix}}
-{self._matriz_to_latex(A)}
+{_matriz_to_latex(A)}
 \\end{{bmatrix}}$$
 """
                     }
