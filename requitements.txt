@@ -1,0 +1,5 @@
+streamlit
+numpy>=1.26.0
+sympy
+pandas
+matplotlib

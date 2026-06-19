@@ -4,8 +4,8 @@ import numpy as np
 import sympy as sp
 import matplotlib.pyplot as plt
 from metodos.secante import secante
-from metodos.gauss_seidel import gauss_seidel
-from metodos.gauss_jordan import gauss_jordan
+from metodos.gaussSeidel import gauss_seidel
+from metodos.gaussJordan import gauss_jordan
 from utils.graficas import graficar_funcion, graficar_error
 import math
 
