@@ -953,11 +953,11 @@ with tab1:
             except Exception as e:
                 st.error(f"Error: {e}")
     
-<<<<<<< HEAD
+#<<<<<<< HEAD
 
-=======
+#=======
     st.markdown("</div>", unsafe_allow_html=True)
->>>>>>> 5e434342181eea7f1cfff1e1f017609c860b0ffb
+#>>>>>>> 5e434342181eea7f1cfff1e1f017609c860b0ffb
 # ============================================================
 # GAUSS-SEIDEL
 # ============================================================
@@ -1157,10 +1157,8 @@ with tab2:
 
         except Exception as e:
             st.error(f"Error: {e}")
-<<<<<<< HEAD
-    
-=======
->>>>>>> 5e434342181eea7f1cfff1e1f017609c860b0ffb
+#<<<<<<< HEAD
+# 5e434342181eea7f1cfff1e1f017609c860b0ffb
 
     st.markdown("</div>", unsafe_allow_html=True)
 # ============================================================
