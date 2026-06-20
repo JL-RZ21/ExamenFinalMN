@@ -1,14 +1,3 @@
-import sys
-import os
-
-# Detecta automáticamente la carpeta del proyecto y la registra en Python
-ruta_proyecto = r"C:\Users\jorge\OneDrive\Documents\Jorge\mariano\metodosNumericos"
-if ruta_proyecto not in sys.path:
-    sys.path.insert(0, ruta_proyecto)
-
-# Ahora el import funcionará sin importar desde dónde lances el comando
-from metodos.gauss_seidel import gauss_seidel
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -893,7 +882,6 @@ with tab1:
         except Exception as e:
             st.error(f"Error: {e}")
     
-    st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
 # GAUSS-SEIDEL
@@ -1055,7 +1043,6 @@ with tab2:
         except Exception as e:
             st.error(f"Error: {e}")
     
-    st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
 # GAUSS-JORDAN
@@ -1126,8 +1113,7 @@ with tab3:
                     <div class="step-number">Operación {paso['iteracion']}</div>
                     <div class="step-content">
                         {paso['detalle']}
-                    </div>
-                </div>
+                
                 """, unsafe_allow_html=True)
             
             # Mostrar matrices finales
@@ -1157,7 +1143,6 @@ with tab3:
         except Exception as e:
             st.error(f"Error: {e}")
     
-    st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
 # FOOTER
