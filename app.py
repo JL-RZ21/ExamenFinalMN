@@ -1067,14 +1067,54 @@ with tab2:
                         f"**Vector nuevo:** [{', '.join([f'{v:.6f}' for v in paso['x']])}]"
                     )
 
-                    st.markdown(f"**Error:** {paso['error']:.6e}")
+                    if paso['iteracion'] > 1:
+                        errores_arriba = []
+
+                        for i in range(len(paso["x"])):
+                            if abs(paso["x"][i]) > 1e-15:
+                                ea = abs((paso["x"][i] - paso["x_old"][i]) / paso["x"][i]) * 100
+                            else:
+                                ea = abs(paso["x"][i] - paso["x_old"][i]) * 100
+
+                            errores_arriba.append(ea)
+
+                        st.markdown(
+                            f"**Error aproximado:** {max(errores_arriba):.6f}%"
+                        )
 
                     for formula in paso["formulas"]:
                         st.latex(formula["sustitucion"])
                         st.latex(formula["resultado"])
                         st.latex(formula["final"])
 
-            # Tabla
+                    if paso['iteracion'] > 1:
+                        st.markdown("### Cálculo del Error")
+
+                        st.latex(
+                            r"E_a = \left|\frac{x_{nuevo} - x_{anterior}}{x_{nuevo}}\right| \times 100"
+                        )
+
+                        errores = []
+
+                        for i in range(len(paso["x"])):
+                            if abs(paso["x"][i]) > 1e-15:
+                                ea = abs((paso["x"][i] - paso["x_old"][i]) / paso["x"][i]) * 100
+                            else:
+                                ea = abs(paso["x"][i] - paso["x_old"][i]) * 100
+
+                            errores.append(ea)
+
+                            st.latex(
+                                rf"E_{{a{i+1}}} = "
+                                rf"\left|\frac{{{paso['x'][i]:.6f} - ({paso['x_old'][i]:.6f})}}{{{paso['x'][i]:.6f}}}\right| \times 100 "
+                                rf"= {ea:.6f}\%"
+                            )
+
+                        st.latex(
+                            rf"E_a = \max({', '.join([f'{e:.6f}' for e in errores])}) = {max(errores):.6f}\%"
+                        )
+
+            # Tabla de Iteraciones
             df = pd.DataFrame(iteraciones)
             n_sol = len(sol)
 
@@ -1101,7 +1141,7 @@ with tab2:
 
             st.dataframe(df_final, use_container_width=True)
 
-            # Gráfica
+            # Gráfica de Evolución del Error
             st.markdown("""
             <div style="font-weight: 600; margin: 1.5rem 0 0.5rem 0; color: #1a1a2e; font-size: 0.9rem;">
                 Evolución del Error
@@ -1114,8 +1154,7 @@ with tab2:
         except Exception as e:
             st.error(f"Error: {e}")
 
-    st.markdown("</div>", unsafe_allow_html=True) 
-
+    st.markdown("</div>", unsafe_allow_html=True)
 # ============================================================
 # GAUSS-JORDAN
 # ============================================================
