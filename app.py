@@ -796,9 +796,9 @@ st.markdown("""
 # TABS
 # ============================================================
 tab1, tab2, tab3 = st.tabs([
-    "📈 Secante",
-    "🔄 Gauss-Seidel",
-    "📊 Gauss-Jordan"
+    "Secante",
+    "Gauss-Seidel",
+    "Gauss-Jordan"
 ])
 
 # ============================================================
