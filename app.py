@@ -577,11 +577,24 @@ def generar_pasos_secante(func_str, x0, x1, tol, max_iter):
         else:
             error = abs(x_next - x_curr)
         
-        # Construir el paso detallado
-        f_str = sp.latex(f)
-        f_prev_str = f"{f_prev:.6f}"
-        f_curr_str = f"{f_curr:.6f}"
-        
+        # Construir el paso detallado (fórmulas separadas, estilo ordenado, sin notación científica)
+        formulas = {
+            'general': r"x_{2} = x_{1} - f(x_{1}) \cdot \frac{x_{1} - x_{0}}{f(x_{1}) - f(x_{0})}",
+            'sustitucion': (
+                rf"x_{{2}} = {x_curr:.6f} - ({f_curr:.6f}) \cdot "
+                rf"\frac{{{x_curr:.6f} - ({x_prev:.6f})}}{{{f_curr:.6f} - ({f_prev:.6f})}}"
+            ),
+            'simplificado': (
+                rf"x_{{2}} = {x_curr:.6f} - ({f_curr:.6f}) \cdot "
+                rf"\frac{{{x_curr - x_prev:.6f}}}{{{f_curr - f_prev:.6f}}}"
+            ),
+            'final': rf"\boxed{{x_{{2}} = {x_next:.6f}}}",
+            'error': (
+                rf"E_a = |x_{{2}} - x_{{1}}| = "
+                rf"|{x_next:.6f} - ({x_curr:.6f})| = {error:.8f}"
+            ),
+        }
+
         paso = {
             'iteracion': iter_actual + 1,
             'x_prev': x_prev,
@@ -590,30 +603,7 @@ def generar_pasos_secante(func_str, x0, x1, tol, max_iter):
             'f_curr': f_curr,
             'x_next': x_next,
             'error': error,
-            'detalle': f"""
-**Iteración {iter_actual + 1}**
-
-Datos:
-- $x_{{0}} = {x_prev:.6f}$
-- $x_{{1}} = {x_curr:.6f}$
-- $f(x_{{0}}) = {f_prev:.6f}$
-- $f(x_{{1}}) = {f_curr:.6f}$
-
-Fórmula de la Secante:
-$$x_{{2}} = x_{{1}} - f(x_{{1}}) \\cdot \\frac{{x_{{1}} - x_{{0}}}}{{f(x_{{1}}) - f(x_{{0}})}}$$
-
-Sustituyendo:
-$$x_{{2}} = {x_curr:.6f} - ({f_curr:.6f}) \\cdot \\frac{{{x_curr:.6f} - {x_prev:.6f}}}{{{f_curr:.6f} - ({f_prev:.6f})}}$$
-
-$$x_{{2}} = {x_curr:.6f} - ({f_curr:.6f}) \\cdot \\frac{{{x_curr - x_prev:.6f}}}{{{f_curr - f_prev:.6f}}}$$
-
-$$x_{{2}} = {x_curr:.6f} - {f_curr * (x_curr - x_prev) / (f_curr - f_prev):.6f}$$
-
-$$\\boxed{{x_{{2}} = {x_next:.6f}}}$$
-
-Error aproximado:
-$$E = |x_{{2}} - x_{{1}}| = |{x_next:.6f} - {x_curr:.6f}| = {error:.6e}$$
-"""
+            'formulas': formulas,
         }
         
         pasos.append(paso)
@@ -894,70 +884,77 @@ with tab1:
     
     col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 6])
     with col_btn1:
-        if st.button("Calcular", use_container_width=True):
-            try:
-                with st.spinner("Procesando..."):
-                    pasos, raiz = generar_pasos_secante(func, x0, x1, tol, max_iter)
-                    iteraciones, _ = secante(func, x0, x1, tol, max_iter)
-                
-                st.markdown(f"""
-                <div class="result-box">
-                    <span class="icon">✓</span>
-                    <span class="label">Raíz aproximada:</span>
-                    <span class="value"><code>{raiz:.10f}</code></span>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # Mostrar paso a paso
-                st.markdown("""
-                <div style="font-weight: 600; margin: 1.5rem 0 0.8rem 0; color: #1a1a2e; font-size: 0.95rem;">
-                    <i class="fas fa-list-ol" style="color: #1a2a4a; margin-right: 0.5rem;"></i>
-                    Paso a Paso
-                </div>
-                """, unsafe_allow_html=True)
-                
-                for paso in pasos:
-                    st.markdown(f"""
-                    <div class="step-container">
-                        <div class="step-number">Iteración {paso['iteracion']}</div>
-                        <div class="step-content">
-                            {paso['detalle']}
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                # Tabla
-                df = pd.DataFrame(iteraciones)
-                df_display = df.copy()
-                for col in ['x_anterior', 'x_actual', 'f_anterior', 'f_actual', 'x_siguiente', 'error_aproximado']:
-                    df_display[col] = df_display[col].apply(lambda v: f"{v:.6e}")
-                
-                st.markdown("""
-                <div style="font-weight: 600; margin: 1.5rem 0 0.5rem 0; color: #1a1a2e; font-size: 0.9rem;">
-                    <i class="fas fa-table" style="color: #1a2a4a; margin-right: 0.5rem;"></i>
-                    Tabla de Iteraciones
-                </div>
-                """, unsafe_allow_html=True)
-                st.dataframe(df_display, use_container_width=True)
-                
-                # Gráfica
-                st.markdown("""
-                <div style="font-weight: 600; margin: 1.5rem 0 0.5rem 0; color: #1a1a2e; font-size: 0.9rem;">
-                    <i class="fas fa-chart-area" style="color: #1a2a4a; margin-right: 0.5rem;"></i>
-                    Gráfica de la Función
-                </div>
-                """, unsafe_allow_html=True)
-                fig = graficar_funcion(func, raiz, x0, x1)
-                st.pyplot(fig)
-                
-            except Exception as e:
-                st.error(f"Error: {e}")
-    
-#<<<<<<< HEAD
+        calcular_secante = st.button("Calcular", use_container_width=True, key="btn_secante")
 
-#=======
+    if calcular_secante:
+        try:
+            with st.spinner("Procesando..."):
+                pasos, raiz = generar_pasos_secante(func, x0, x1, tol, max_iter)
+                iteraciones, _ = secante(func, x0, x1, tol, max_iter)
+
+            st.markdown(f"""
+            <div class="result-box">
+                <span class="icon">✓</span>
+                <span class="label">Raíz aproximada:</span>
+                <span class="value"><code>{raiz:.10f}</code></span>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # Mostrar paso a paso
+            st.markdown("""
+            <div style="font-weight: 600; margin: 1.5rem 0 0.8rem 0; color: #1a1a2e; font-size: 0.95rem;">
+                <i class="fas fa-list-ol" style="color: #1a2a4a; margin-right: 0.5rem;"></i>
+                Paso a Paso
+            </div>
+            """, unsafe_allow_html=True)
+
+            for paso in pasos:
+                with st.container(border=True):
+                    st.markdown(f"### Iteración {paso['iteracion']}")
+
+                    st.markdown(f"**x anterior (x₀):** {paso['x_prev']:.6f}")
+                    st.markdown(f"**x actual (x₁):** {paso['x_curr']:.6f}")
+                    st.markdown(f"**f(x anterior):** {paso['f_prev']:.6f}")
+                    st.markdown(f"**f(x actual):** {paso['f_curr']:.6f}")
+
+                    st.markdown("**Fórmula de la Secante:**")
+                    st.latex(paso['formulas']['general'])
+                    st.latex(paso['formulas']['sustitucion'])
+                    st.latex(paso['formulas']['simplificado'])
+                    st.latex(paso['formulas']['final'])
+
+                    st.markdown(f"**x siguiente:** {paso['x_next']:.6f}")
+                    st.markdown(f"**Error aproximado:** {paso['error']:.8f}")
+                    st.latex(paso['formulas']['error'])
+
+            # Tabla
+            df = pd.DataFrame(iteraciones)
+            df_display = df.copy()
+            for col in ['x_anterior', 'x_actual', 'f_anterior', 'f_actual', 'x_siguiente', 'error_aproximado']:
+                df_display[col] = df_display[col].apply(lambda v: f"{v:.6f}")
+
+            st.markdown("""
+            <div style="font-weight: 600; margin: 1.5rem 0 0.5rem 0; color: #1a1a2e; font-size: 0.9rem;">
+                <i class="fas fa-table" style="color: #1a2a4a; margin-right: 0.5rem;"></i>
+                Tabla de Iteraciones
+            </div>
+            """, unsafe_allow_html=True)
+            st.dataframe(df_display, use_container_width=True)
+
+            # Gráfica
+            st.markdown("""
+            <div style="font-weight: 600; margin: 1.5rem 0 0.5rem 0; color: #1a1a2e; font-size: 0.9rem;">
+                <i class="fas fa-chart-area" style="color: #1a2a4a; margin-right: 0.5rem;"></i>
+                Gráfica de la Función
+            </div>
+            """, unsafe_allow_html=True)
+            fig = graficar_funcion(func, raiz, x0, x1)
+            st.pyplot(fig)
+
+        except Exception as e:
+            st.error(f"Error: {e}")
+
     st.markdown("</div>", unsafe_allow_html=True)
-#>>>>>>> 5e434342181eea7f1cfff1e1f017609c860b0ffb
 # ============================================================
 # GAUSS-SEIDEL
 # ============================================================
@@ -1135,7 +1132,7 @@ with tab2:
 
             for col in df_final.columns:
                 if col != 'Iteración':
-                    df_final[col] = df_final[col].apply(lambda v: f"{v:.6e}")
+                    df_final[col] = df_final[col].apply(lambda v: f"{v:.6f}")
 
             st.markdown("""
             <div style="font-weight: 600; margin: 1.5rem 0 0.5rem 0; color: #1a1a2e; font-size: 0.9rem;">
