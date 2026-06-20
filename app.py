@@ -535,16 +535,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# FUNCIÓN MATRIZ A LATEX
-# ============================================================
-def _matriz_to_latex(matriz):
-    """Convierte una matriz a formato LaTeX"""
-    filas = []
-    for fila in matriz:
-        filas.append(" & ".join([f"{v:.6f}" for v in fila]))
-    return " \\\\ ".join(filas)
-
-# ============================================================
 # FUNCIONES PARA GENERAR PASO A PASO
 # ============================================================
 
@@ -578,13 +568,11 @@ def generar_pasos_secante(func_str, x0, x1, tol, max_iter):
             error = abs(x_next - x_curr)
         
         # Error aproximado para mostrar: Ea = |(x_nuevo - x_anterior) / x_nuevo| x 100
-        # (separado del criterio de paro interno, que no cambia)
         if abs(x_next) > 1e-15:
             error_pct = abs((x_next - x_curr) / x_next) * 100
         else:
             error_pct = abs(x_next - x_curr) * 100
 
-        # Construir el paso detallado (fórmulas separadas, estilo ordenado, sin notación científica)
         formulas = {
             'general': r"x_{2} = x_{1} - f(x_{1}) \cdot \frac{x_{1} - x_{0}}{f(x_{1}) - f(x_{0})}",
             'sustitucion': (
@@ -683,157 +671,6 @@ def generar_pasos_gauss_seidel(A, b, x0, tol, max_iter):
 
     return pasos, x
 
-def generar_pasos_gauss_jordan(aumentada):
-    """Genera el paso a paso detallado del método de Gauss-Jordan"""
-    A = np.array(aumentada, dtype=float)
-    n = A.shape[0]
-    
-    pasos = []
-    
-    # Paso inicial: mostrar la matriz aumentada
-    paso_inicial = {
-        'tipo': 'inicial',
-        'iteracion': 0,
-        'detalle': f"""
-**Matriz aumentada inicial:**
-
-$$\\begin{{bmatrix}}
-{_matriz_to_latex(A)}
-\\end{{bmatrix}}$$
-""",
-        'matriz': A.copy()
-    }
-    pasos.append(paso_inicial)
-    
-    for i in range(n):
-        # Buscar pivote
-        pivote = A[i, i]
-        if abs(pivote) < 1e-15:
-            intercambio = None
-            for j in range(i+1, n):
-                if abs(A[j, i]) > 1e-15:
-                    intercambio = j
-                    break
-            if intercambio is not None:
-                A[[i, intercambio]] = A[[intercambio, i]]
-                paso = {
-                    'tipo': 'intercambio',
-                    'iteracion': i+1,
-                    'detalle': f"""
-**Paso {i+1}: Intercambio de filas**
-
-Como el pivote $a_{{{i+1}{i+1}}} = {pivote:.6f}$ es cero (o muy cercano a cero), 
-se intercambia la fila {i+1} con la fila {intercambio+1}.
-
-**Matriz después del intercambio:**
-
-$$\\begin{{bmatrix}}
-{_matriz_to_latex(A)}
-\\end{{bmatrix}}$$
-""",
-                    'matriz': A.copy()
-                }
-                pasos.append(paso)
-                pivote = A[i, i]
-        
-        # Normalizar fila pivote
-        A_fila_original = A[i, :].copy()
-        A[i, :] = A[i, :] / pivote
-        
-        paso = {
-            'tipo': 'normalizar',
-            'iteracion': i+1,
-            'detalle': f"""
-**Paso {i+1}: Normalizar fila pivote**
-
-Se divide la fila {i+1} por el pivote $a_{{{i+1}{i+1}}} = {pivote:.6f}$:
-
-$$F_{{{i+1}}} \\leftarrow \\frac{{F_{{{i+1}}}}}{{{pivote:.6f}}}$$
-
-**Matriz después de normalizar:**
-
-$$\\begin{{bmatrix}}
-{_matriz_to_latex(A)}
-\\end{{bmatrix}}$$
-
-**Fila {i+1} normalizada:**
-
-$$\\begin{{bmatrix}}
-{" & ".join([f"{v:.6f}" for v in A[i, :]])}
-\\end{{bmatrix}}$$
-""",
-            'matriz': A.copy()
-        }
-        pasos.append(paso)
-        
-        # Eliminar en todas las demás filas
-        for j in range(n):
-            if j != i:
-                factor = A[j, i]
-                if abs(factor) > 1e-15:
-                    A_fila_original_j = A[j, :].copy()
-                    A[j, :] = A[j, :] - factor * A[i, :]
-                    
-                    paso = {
-                        'tipo': 'eliminar',
-                        'iteracion': i+1,
-                        'detalle': f"""
-**Paso {i+1}: Eliminar en fila {j+1}**
-
-Se elimina el elemento $a_{{{j+1}{i+1}}} = {factor:.6f}$ usando la fila pivote:
-
-$$F_{{{j+1}}} \\leftarrow F_{{{j+1}}} - ({factor:.6f}) \\cdot F_{{{i+1}}}$$
-
-**Cálculo detallado:**
-
-- Fila original {j+1}: $$\\begin{{bmatrix}}
-{" & ".join([f"{v:.6f}" for v in A_fila_original_j])}
-\\end{{bmatrix}}$$
-
-- Restando $${factor:.6f} \\cdot$$ Fila {i+1}: $$\\begin{{bmatrix}}
-{" & ".join([f"{factor * A[i, k]:.6f}" for k in range(n+1)])}
-\\end{{bmatrix}}$$
-
-- Resultado: $$\\begin{{bmatrix}}
-{" & ".join([f"{A[j, k]:.6f}" for k in range(n+1)])}
-\\end{{bmatrix}}$$
-
-**Matriz después de eliminar:**
-
-$$\\begin{{bmatrix}}
-{_matriz_to_latex(A)}
-\\end{{bmatrix}}$$
-""",
-                        'matriz': A.copy()
-                    }
-                    pasos.append(paso)
-    
-    # Paso final
-    solucion = A[:, -1]
-    paso_final = {
-        'tipo': 'final',
-        'iteracion': n+1,
-        'detalle': f"""
-**¡Solución encontrada!**
-
-**Matriz identidad resultante (forma escalonada reducida):**
-
-$$\\begin{{bmatrix}}
-{_matriz_to_latex(A)}
-\\end{{bmatrix}}$$
-
-**Vector solución:**
-
-$$x = \\begin{{bmatrix}}
-{" \\\\ ".join([f"{solucion[k]:.8f}" for k in range(n)])}
-\\end{{bmatrix}}$$
-""",
-        'matriz': A.copy()
-    }
-    pasos.append(paso_final)
-    
-    return pasos, solucion
-
 # ============================================================
 # HEADER
 # ============================================================
@@ -907,7 +744,6 @@ with tab1:
             </div>
             """, unsafe_allow_html=True)
 
-            # Mostrar paso a paso
             st.markdown("""
             <div style="font-weight: 600; margin: 1.5rem 0 0.8rem 0; color: #1a1a2e; font-size: 0.95rem;">
                 <i class="fas fa-list-ol" style="color: #1a2a4a; margin-right: 0.5rem;"></i>
@@ -934,7 +770,6 @@ with tab1:
                     st.markdown(f"**Error aproximado:** {paso['error']:.6f}%")
                     st.latex(paso['formulas']['error'])
 
-            # Tabla
             df = pd.DataFrame(iteraciones)
             df_display = df.copy()
             for col in ['x_anterior', 'x_actual', 'f_anterior', 'f_actual', 'x_siguiente', 'error_aproximado']:
@@ -948,7 +783,6 @@ with tab1:
             """, unsafe_allow_html=True)
             st.dataframe(df_display, use_container_width=True)
 
-            # Gráfica
             st.markdown("""
             <div style="font-weight: 600; margin: 1.5rem 0 0.5rem 0; color: #1a1a2e; font-size: 0.9rem;">
                 <i class="fas fa-chart-area" style="color: #1a2a4a; margin-right: 0.5rem;"></i>
@@ -962,6 +796,7 @@ with tab1:
             st.error(f"Error: {e}")
 
     st.markdown("</div>", unsafe_allow_html=True)
+
 # ============================================================
 # GAUSS-SEIDEL
 # ============================================================
@@ -1122,7 +957,6 @@ with tab2:
                             rf"E_a = \max({', '.join([f'{e:.6f}' for e in errores])}) = {max(errores):.6f}\%"
                         )
 
-            # Tabla de Iteraciones
             df = pd.DataFrame(iteraciones)
             n_sol = len(sol)
 
@@ -1149,7 +983,6 @@ with tab2:
 
             st.dataframe(df_final, use_container_width=True)
 
-            # Gráfica de Evolución del Error
             st.markdown("""
             <div style="font-weight: 600; margin: 1.5rem 0 0.5rem 0; color: #1a1a2e; font-size: 0.9rem;">
                 Evolución del Error
@@ -1161,10 +994,9 @@ with tab2:
 
         except Exception as e:
             st.error(f"Error: {e}")
-#<<<<<<< HEAD
-# 5e434342181eea7f1cfff1e1f017609c860b0ffb
 
     st.markdown("</div>", unsafe_allow_html=True)
+
 # ============================================================
 # GAUSS-JORDAN
 # ============================================================
@@ -1177,45 +1009,47 @@ with tab3:
             <span class="method-tag">Eliminación directa</span>
         </div>
     """, unsafe_allow_html=True)
-    
-    n_gj = st.number_input("Número de ecuaciones", min_value=2, max_value=10, value=3, step=1, key="n_gj")
-    
+
+    n_gj = st.number_input(
+        "Número de ecuaciones",
+        min_value=2,
+        max_value=10,
+        value=3,
+        step=1,
+        key="n_gj"
+    )
+
     st.markdown("""
     <div style="font-weight: 500; margin: 1rem 0 0.5rem 0; color: #4a4a6a; font-size: 0.85rem;">
-        <i class="fas fa-matrix" style="color: #1a2a4a; margin-right: 0.5rem;"></i>
         Matriz aumentada (A | b)
     </div>
     """, unsafe_allow_html=True)
-    
+
     aumentada_input = []
+
     for i in range(n_gj):
-        cols = st.columns(n_gj+1)
+        cols = st.columns(n_gj + 1)
         row = []
-        for j in range(n_gj+1):
+
+        for j in range(n_gj + 1):
             if j < n_gj:
-                # Valores predeterminados para el ejemplo de la imagen
+                # Valores por defecto del ejemplo
                 if n_gj == 3:
-                    if i == 0 and j == 0: val_default = 1.0
-                    elif i == 0 and j == 1: val_default = -1.0
-                    elif i == 0 and j == 2: val_default = 0.0
-                    elif i == 1 and j == 0: val_default = -1.0
-                    elif i == 1 and j == 1: val_default = 1.0
-                    elif i == 1 and j == 2: val_default = 1.0
-                    elif i == 2 and j == 0: val_default = 0.0
-                    elif i == 2 and j == 1: val_default = -1.0
-                    elif i == 2 and j == 2: val_default = 1.0
-                    else: val_default = 0.0
+                    valores_a = [
+                        [-1.0, 5.0, 6.0],
+                        [2.0, -6.0, 7.0],
+                        [5.0, -1.0, -8.0]
+                    ]
+                    val_default = valores_a[i][j]
                 else:
-                    val_default = 1.0 if i == j else (0.0 if abs(i-j) > 1 else (1.0 if i < j else -1.0))
+                    val_default = 1.0 if i == j else 0.0
             else:
-                # Valores predeterminados para el ejemplo de la imagen
                 if n_gj == 3:
-                    if i == 0: val_default = 0.0
-                    elif i == 1: val_default = 3.0
-                    elif i == 2: val_default = 6.0
-                    else: val_default = 1.0
+                    valores_b = [-38.0, -25.0, 17.0]
+                    val_default = valores_b[i]
                 else:
-                    val_default = 1.0 if i == 0 else (3.0 if i == 1 else 6.0)
+                    val_default = 1.0
+
             with cols[j]:
                 val = st.number_input(
                     f"m{i+1}{j+1}",
@@ -1225,42 +1059,269 @@ with tab3:
                     format="%g"
                 )
                 row.append(val)
+
         aumentada_input.append(row)
-    
+
     if st.button("Calcular", key="btn_gj", use_container_width=True):
         try:
             with st.spinner("Procesando..."):
-                pasos, sol = generar_pasos_gauss_jordan(aumentada_input)
-            
+
+                # ------------------------------------------------
+                # Función para convertir matriz a formato LaTeX
+                # ------------------------------------------------
+                def matriz_to_latex(matriz, decimales=6):
+                    filas = []
+                    for fila in matriz:
+                        elementos = []
+                        for v in fila:
+                            if abs(v) < 1e-10:
+                                elementos.append("0.000000")
+                            else:
+                                elementos.append(f"{v:.{decimales}f}")
+                        filas.append(" & ".join(elementos))
+                    return r" \\ ".join(filas)
+
+                # ------------------------------------------------
+                # Función auxiliar para renderizar texto + latex
+                # ------------------------------------------------
+                def render_detalle(detalle):
+                    bloques = detalle.strip().split("§§LATEX§§")
+                    for i, bloque in enumerate(bloques):
+                        bloque = bloque.strip()
+                        if i % 2 == 0:
+                            if bloque:
+                                st.markdown(bloque)
+                        else:
+                            if bloque:
+                                st.latex(bloque)
+
+                A = np.array(aumentada_input, dtype=float)
+                n = A.shape[0]
+                pasos = []
+                contador = 1
+
+                # =================================================
+                # MATRIZ INICIAL
+                # =================================================
+                pasos.append({
+                    "titulo": "Matriz aumentada inicial",
+                    "detalle": f"""
+**Matriz aumentada inicial:**
+
+§§LATEX§§
+\\begin{{bmatrix}}
+{matriz_to_latex(A)}
+\\end{{bmatrix}}
+§§LATEX§§
+"""
+                })
+
+                # =================================================
+                # PROCESO GAUSS-JORDAN
+                # =================================================
+                for i in range(n):
+                    pivote = A[i, i]
+
+                    # --------------------------------------------
+                    # Si el pivote es cero, buscar intercambio
+                    # --------------------------------------------
+                    if abs(pivote) < 1e-15:
+                        intercambio = None
+                        for j in range(i + 1, n):
+                            if abs(A[j, i]) > 1e-15:
+                                intercambio = j
+                                break
+
+                        if intercambio is not None:
+                            A[[i, intercambio]] = A[[intercambio, i]]
+                            pivote = A[i, i]
+
+                            pasos.append({
+                                "titulo": f"Operación {contador}: Intercambio de filas",
+                                "detalle": f"""
+**Paso {contador}: Intercambio de filas**
+
+Como el pivote $a_{{{i+1}{i+1}}}$ es cero, se intercambia la fila {i+1} con la fila {intercambio+1}.
+
+§§LATEX§§
+F_{{{i+1}}} \\leftrightarrow F_{{{intercambio+1}}}
+§§LATEX§§
+
+**Matriz después del intercambio:**
+
+§§LATEX§§
+\\begin{{bmatrix}}
+{matriz_to_latex(A)}
+\\end{{bmatrix}}
+§§LATEX§§
+"""
+                            })
+                            contador += 1
+                        else:
+                            raise ValueError(
+                                "El sistema no tiene solución única porque se encontró un pivote cero."
+                            )
+
+                    # --------------------------------------------
+                    # Normalizar fila pivote
+                    # --------------------------------------------
+                    pivote = A[i, i]
+                    if abs(pivote) < 1e-15:
+                        raise ValueError(
+                            f"No se puede continuar: pivote cero en la fila {i+1}."
+                        )
+
+                    A[i, :] = A[i, :] / pivote
+
+                    pasos.append({
+                        "titulo": f"Operación {contador}: Normalizar fila pivote",
+                        "detalle": f"""
+**Paso {contador}: Normalizar fila pivote**
+
+Se divide la fila {i+1} por el pivote $a_{{{i+1}{i+1}}} = {pivote:.6f}$:
+
+§§LATEX§§
+F_{{{i+1}}} \\leftarrow \\frac{{F_{{{i+1}}}}}{{{pivote:.6f}}}
+§§LATEX§§
+
+**Matriz después de normalizar:**
+
+§§LATEX§§
+\\begin{{bmatrix}}
+{matriz_to_latex(A)}
+\\end{{bmatrix}}
+§§LATEX§§
+
+**Fila {i+1} normalizada:**
+
+§§LATEX§§
+\\begin{{bmatrix}}
+{matriz_to_latex(A[i:i+1, :])}
+\\end{{bmatrix}}
+§§LATEX§§
+"""
+                    })
+                    contador += 1
+
+                    # --------------------------------------------
+                    # Eliminar en las demás filas
+                    # --------------------------------------------
+                    for j in range(n):
+                        if j != i:
+                            factor = A[j, i]
+
+                            if abs(factor) > 1e-15:
+                                fila_original = A[j, :].copy()
+                                fila_resta = factor * A[i, :]
+                                A[j, :] = A[j, :] - fila_resta
+
+                                pasos.append({
+                                    "titulo": f"Operación {contador}: Eliminar en fila {j+1}",
+                                    "detalle": f"""
+**Paso {contador}: Eliminar en fila {j+1}**
+
+Se elimina el elemento $a_{{{j+1}{i+1}}} = {factor:.6f}$ usando la fila pivote:
+
+§§LATEX§§
+F_{{{j+1}}} \\leftarrow F_{{{j+1}}} - ({factor:.6f})F_{{{i+1}}}
+§§LATEX§§
+
+**Fila original {j+1}:**
+
+§§LATEX§§
+\\begin{{bmatrix}}
+{matriz_to_latex(fila_original.reshape(1, -1))}
+\\end{{bmatrix}}
+§§LATEX§§
+
+**Restando $({factor:.6f}) \\cdot F_{{{i+1}}}$:**
+
+§§LATEX§§
+\\begin{{bmatrix}}
+{matriz_to_latex(fila_resta.reshape(1, -1))}
+\\end{{bmatrix}}
+§§LATEX§§
+
+**Resultado de la fila {j+1}:**
+
+§§LATEX§§
+\\begin{{bmatrix}}
+{matriz_to_latex(A[j:j+1, :])}
+\\end{{bmatrix}}
+§§LATEX§§
+
+**Matriz después de eliminar:**
+
+§§LATEX§§
+\\begin{{bmatrix}}
+{matriz_to_latex(A)}
+\\end{{bmatrix}}
+§§LATEX§§
+"""
+                                })
+                                contador += 1
+
+                # =================================================
+                # SOLUCIÓN FINAL
+                # =================================================
+                solucion = A[:, -1]
+
+                pasos.append({
+                    "titulo": "Solución final",
+                    "detalle": f"""
+**Matriz final en forma escalonada reducida:**
+
+§§LATEX§§
+\\begin{{bmatrix}}
+{matriz_to_latex(A)}
+\\end{{bmatrix}}
+§§LATEX§§
+
+**Vector solución:**
+
+§§LATEX§§
+x =
+\\begin{{bmatrix}}
+{" \\\\ ".join([f"{solucion[k]:.8f}" for k in range(n)])}
+\\end{{bmatrix}}
+§§LATEX§§
+
+**Solución explícita:**
+
+{", ".join([f"$x_{k+1} = {solucion[k]:.8f}$" for k in range(n)])}
+"""
+                })
+
+            # =====================================================
+            # RESULTADO FINAL
+            # =====================================================
             st.markdown(f"""
             <div class="result-box">
                 <span class="icon">✓</span>
                 <span class="label">Vector solución:</span>
-                <span class="value"><code>[{', '.join([f'{v:.8f}' for v in sol])}]</code></span>
+                <span class="value"><code>[{', '.join([f'{v:.8f}' for v in solucion])}]</code></span>
             </div>
             """, unsafe_allow_html=True)
-            
-            # Mostrar paso a paso
+
+            # =====================================================
+            # MOSTRAR PASO A PASO
+            # =====================================================
             st.markdown("""
             <div style="font-weight: 600; margin: 1.5rem 0 0.8rem 0; color: #1a1a2e; font-size: 0.95rem;">
                 <i class="fas fa-list-ol" style="color: #1a2a4a; margin-right: 0.5rem;"></i>
                 Paso a Paso
             </div>
             """, unsafe_allow_html=True)
-            
+
             for paso in pasos:
-                st.markdown(f"""
-                <div class="step-container">
-                    <div class="step-number">Operación {paso['iteracion']}</div>
-                    <div class="step-content">
-                        {paso['detalle']}
-                
-                """, unsafe_allow_html=True)
-            
+                with st.container(border=True):
+                    st.markdown(f"### {paso['titulo']}")
+                    render_detalle(paso["detalle"])
+
         except Exception as e:
             st.error(f"Error: {e}")
-    
 
+    st.markdown("</div>", unsafe_allow_html=True)
 # ============================================================
 # FOOTER
 # ============================================================
