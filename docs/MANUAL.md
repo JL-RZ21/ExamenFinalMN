@@ -18,6 +18,7 @@ Los métodos disponibles son:
 - Método de Gauss-Seidel
 - Método de Gauss-Jordan
 
+¡[metodos generales](C:/Users/Karen Ortega/Downloads/WhatsApp Image 2026-06-20 at 12.32.40 AM.jpeg)
 ---
 
 ## Método de la Secante
@@ -34,6 +35,7 @@ Este método permite encontrar una aproximación de la raíz de una función mat
 4. Ingrese la tolerancia requerida.
 5. Presione el botón **Calcular**.
 
+¡[secante](C:/Users/Karen Ortega/Downloads/WhatsApp Image 2026-06-20 at 12.29.29 AM.jpeg)
 ### Resultado
 
 El sistema mostrará:
@@ -45,8 +47,10 @@ El sistema mostrará:
 
 **Figura 1. Pantalla del Método de la Secante**
 
-![Método de la Secante](imagenes/secante.png)
-
+¡[Método de la Secante](C:/Users/Karen Ortega/Downloads/Captura de pantalla 2026-06-20 004720.png)
+¡[calculo de error](C:/Users/Karen Ortega/Downloads/Captura de pantalla 2026-06-20 010235.png)
+¡[Tabla de iteraciones](C:/Users/Karen Ortega/Downloads/Captura de pantalla 2026-06-20 005010.png)
+¡[grafica](C:/Users/Karen Ortega/Downloads/Captura de pantalla 2026-06-20 010153.png)
 ---
 
 ## Método de Gauss-Seidel
@@ -62,6 +66,8 @@ Este método permite resolver sistemas de ecuaciones lineales mediante aproximac
 3. Introduzca los valores solicitados.
 4. Presione el botón **Calcular**.
 
+¡[gauss-seidel](C:/Users/Karen Ortega/Downloads/9ea07ffd-025d-4cac-91aa-7065fd52c292.jpg)
+
 ### Resultado
 
 El sistema mostrará:
@@ -72,8 +78,10 @@ El sistema mostrará:
 
 **Figura 2. Pantalla del Método de Gauss-Seidel**
 
-![Método de Gauss-Seidel](imagenes/gauss_seidel.png)
-
+¡[Método de Gauss-Seidel](C:/Users/Karen Ortega/Downloads/7a7a3f4c-491c-4364-9366-5049ea112879.jpg)
+¡[calculo de error](C:/Users/Karen Ortega/Downloads/a7e442a3-ad3a-4b78-a6f8-d8e982f96363.jpg)
+¡[tabla de iteraciones](C:/Users/Karen Ortega/Downloads/a6e6c096-59ff-409b-a85d-21ff43e86329.jpg)
+¡[grafica](C:/Users/Karen Ortega/Downloads/3d67844a-dfd3-4a4b-bf42-d60307fc2047.jpg)
 ---
 
 ## Método de Gauss-Jordan
@@ -87,6 +95,7 @@ Este método permite resolver sistemas de ecuaciones lineales mediante operacion
 1. Seleccione la opción **Gauss-Jordan**.
 2. Ingrese los datos del sistema de ecuaciones.
 3. Presione el botón **Calcular**.
+¡[gauss_jordan]()
 
 ### Resultado
 
@@ -98,8 +107,9 @@ El sistema mostrará:
 
 **Figura 3. Pantalla del Método de Gauss-Jordan**
 
-![Método de Gauss-Jordan](imagenes/gauss_jordan.png)
-
+¡[Método de Gauss-Jordan](C:/Users/Karen Ortega/Downloads/aad6c409-f56c-45f1-baa7-03db472a5ec6.jpg)
+¡[gauss_jordan](C:/Users/Karen Ortega/Downloads/53fbc677-3c64-4f8c-a49e-85408ced27b7.jpg)
+¡[gauss_jordan](C:/Users/Karen Ortega/Downloads/4230a514-5115-4c1e-83c3-3d8d8afe06fc.jpg)
 ---
 
 ## Recomendaciones de Uso
