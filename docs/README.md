@@ -74,4 +74,4 @@ http://localhost:8501
 ```
 
 ### Aporte de los integrantes del grupo
-¡[Aporte de los integrantes](C:/Users/Karen Ortega/Downloads/d099acc4-68f3-4a08-9656-515d76397102.jpg)
+¡[Aporte de los integrantes](../imagenes/d099acc4-68f3-4a08-9656-515d76397102.jpg)
