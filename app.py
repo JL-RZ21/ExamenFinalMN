@@ -577,6 +577,13 @@ def generar_pasos_secante(func_str, x0, x1, tol, max_iter):
         else:
             error = abs(x_next - x_curr)
         
+        # Error aproximado para mostrar: Ea = |(x_nuevo - x_anterior) / x_nuevo| x 100
+        # (separado del criterio de paro interno, que no cambia)
+        if abs(x_next) > 1e-15:
+            error_pct = abs((x_next - x_curr) / x_next) * 100
+        else:
+            error_pct = abs(x_next - x_curr) * 100
+
         # Construir el paso detallado (fórmulas separadas, estilo ordenado, sin notación científica)
         formulas = {
             'general': r"x_{2} = x_{1} - f(x_{1}) \cdot \frac{x_{1} - x_{0}}{f(x_{1}) - f(x_{0})}",
@@ -590,8 +597,8 @@ def generar_pasos_secante(func_str, x0, x1, tol, max_iter):
             ),
             'final': rf"\boxed{{x_{{2}} = {x_next:.6f}}}",
             'error': (
-                rf"E_a = |x_{{2}} - x_{{1}}| = "
-                rf"|{x_next:.6f} - ({x_curr:.6f})| = {error:.8f}"
+                rf"E_a = \left|\frac{{x_{{nuevo}} - x_{{anterior}}}}{{x_{{nuevo}}}}\right| \times 100 = "
+                rf"\left|\frac{{{x_next:.6f} - ({x_curr:.6f})}}{{{x_next:.6f}}}\right| \times 100 = {error_pct:.6f}\%"
             ),
         }
 
@@ -602,7 +609,7 @@ def generar_pasos_secante(func_str, x0, x1, tol, max_iter):
             'f_prev': f_prev,
             'f_curr': f_curr,
             'x_next': x_next,
-            'error': error,
+            'error': error_pct,
             'formulas': formulas,
         }
         
@@ -848,9 +855,9 @@ st.markdown("""
 # TABS
 # ============================================================
 tab1, tab2, tab3 = st.tabs([
-    "📈 Secante",
-    "🔄 Gauss-Seidel",
-    "📊 Gauss-Jordan"
+    "Secante",
+    "Gauss-Seidel",
+    "Gauss-Jordan"
 ])
 
 # ============================================================
@@ -924,7 +931,7 @@ with tab1:
                     st.latex(paso['formulas']['final'])
 
                     st.markdown(f"**x siguiente:** {paso['x_next']:.6f}")
-                    st.markdown(f"**Error aproximado:** {paso['error']:.8f}")
+                    st.markdown(f"**Error aproximado:** {paso['error']:.6f}%")
                     st.latex(paso['formulas']['error'])
 
             # Tabla
